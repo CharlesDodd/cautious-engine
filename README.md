@@ -2,7 +2,9 @@
 An app to experiment with Cryptography and Seganography
 https://inventwithpython.com/cracking/
 
-The gui for this app is made in Tkiner and so has been sorely limited.
+This project was started without any form of version control, as such it is waiting to be cleaned up.
+
+The gui for this app is made in Tkiner, .
 
 Inspired by Cracking Codes With Python (see link above), the first page allows the user to:
 
