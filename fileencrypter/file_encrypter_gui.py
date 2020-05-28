@@ -1,9 +1,13 @@
 import tkinter as tk
+import cv2 as cv
+import numpy as np
+import types
 from tkinter import filedialog
 from tkinter import ttk
 import time, os, sys
 import random
 import string
+
 
 import PyVigDec, PyVigEnc
 
@@ -16,7 +20,7 @@ class App(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         container = tk.Frame(self)
-        container.pack(expand=1)
+        container.pack(expand=1, padx=50,pady=25)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
@@ -47,24 +51,27 @@ class App(tk.Tk):
         self.content = fileObj.read()
         fileObj.close()
 
+    def keyReader(key):
+        key_slices = key.split('x')
+        return key_slices
+
     def addSecretImage(self):
         imagename = filedialog.askopenfilename(initialdir="/", title="Select File")
         print(imagename)
-        labelName = tk.Label(text="You have selected "+os.path.basename(imagename) + " to hide")
-        labelName.config(wraplength=300)
-        labelName.pack()
-
-        self.imagename = imagename
+        labelSecret = tk.Label(text="You have selected "+os.path.basename(imagename) + " to hide")
+        labelSecret.config(wraplength=300)
+        labelSecret.pack()
+        self.imagename = cv.imread(imagename)
 
     def addCoverImage(self):
         imagename = filedialog.askopenfilename(initialdir="/", title="Select File")
                                              
         print(imagename)
-        labelName = tk.Label(text="You have selected "+ os.path.basename(imagename) + " to be the cover image")
-        labelName.config(wraplength=300)
-        labelName.pack()
-
-        self.covername = imagename
+        labelCover = tk.Label(text="You have selected "+ os.path.basename(imagename) + " to be the cover image")
+        labelCover.config(wraplength=300)
+        labelCover.pack()
+        self.save_covername = imagename
+        self.covername = cv.imread(imagename)
         
        
     def returnSecretImageName(self):
@@ -96,7 +103,6 @@ class App(tk.Tk):
             padKey += random.choice(letters)
         return padKey
 
-
     def runOneTimePad(self):
         pad_Key = self.genOneTimePad()
         convertedContent = PyVigEnc.encrypt(pad_Key, self.content)
@@ -111,6 +117,71 @@ class App(tk.Tk):
         savedKeyFile.write(pad_Key)
         savedKeyFile.close()
 
+    def blackWhiteToBinary(self, picture):
+        binary_image = ''
+        for i in range(picture.shape[0]):
+            for j in range(picture.shape[1]):
+                if picture[i][j][0] == 0:
+                    binary_image += '0'
+                else:
+                    binary_image += '1'
+        return binary_image
+
+    def hideBlackWhite(self,image_data, cover_image):
+        index_binary = 0
+        index_max = len(image_data)
+        for i in range(cover_image.shape[0]):
+            for j in range(cover_image.shape[1]):
+                if index_binary > index_max:
+                    break
+                else:
+                    binary_rgb = str(format(cover_image[i][j][0], "08b") )
+                    cover_image[i][j][0] = int(binary_rgb[:-1] + image_data[index_binary],2)
+                    index_binary += 1
+        return cover_image
+
+    def colourToBinary(self,picture):
+        binary_image = ''
+        for i in range(picture.shape[0]):
+            for j in range(picture.shape[1]):
+                for k in range(3):
+                    binary_image += str(( format(picture[i][j][k], "08b") ))
+
+        return binary_image  
+
+    def hideImage(image_data, cover_image):
+        index_binary = 0
+        index_max = len(image_data)
+        for i in range(cover_image.shape[0]):
+            for j in range(cover_image.shape[1]):
+                for k in range(3):
+                    if index_binary >= index_max:
+                        break
+                    else:
+                        binary_rgb = str(format(cover_image[i][j][k], "08b") )
+                        cover_image[i][j][k] = int(binary_rgb[:-1] + image_data[index_binary],2)
+                        index_binary += 1
+        return cover_image
+
+    def bwTestPrint(self):
+            print('bw selected')
+        
+    def colourTestPrint(self):
+            print('colour selected')
+
+    def steganographicFunction(self):
+        if self.frames[PageOne].var_bw.get() == 1:
+            binary_image = self.blackWhiteToBinary(self.imagename)
+            hidden_image = self.hideBlackWhite(binary_image,self.covername)
+            cv.imwrite(self.frames[PageOne].entrySavedName.get(),hidden_image)
+            return self.bwTestPrint()
+        
+        else:
+            c_binary_image = self.colourToBinary(self.imagename)
+            c_hidden_image = self.hideBlackWhite(c_binary_image, self.covername)
+            cv.imwrite(self.frames[PageOne].entrySavedName.get(),c_hidden_image)
+            return self.colourTestPrint()
+        
 
 
 class StartPage(tk.Frame):
@@ -150,8 +221,6 @@ class StartPage(tk.Frame):
         nextPage.pack()
 
 
-
-
 class PageOne(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -167,15 +236,24 @@ class PageOne(tk.Frame):
                                    command=lambda: controller.addCoverImage())
         chooseCoverImageButton.pack()
 
+        self.var_bw = tk.IntVar()
+        self.var_bw.set(0)
+        self.check_bw = tk.Checkbutton(self, text='Image to hide is black and white',variable=self.var_bw, onvalue=1, offvalue=0)
+        self.check_bw.pack()
+
+        self.entryImageSize = tk.Entry(self, bg="#CACACA")
+        self.entryImageSize.pack()
+        self.entryImageSize.insert(0, "Size of image")
+
         self.entrySavedName = tk.Entry(self, bg="#CACACA")
         self.entrySavedName.pack()
         self.entrySavedName.insert(0, "Saved image file name")
 
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame(StartPage))
+        button1 = tk.Button(self, text="Hide Image",
+                            command=lambda: controller.steganographicFunction())
         button1.pack()
 
-        lastPage = tk.Button(self, text="Steganography", padx=7, pady=5, fg="white", bg="#252D33",
+        lastPage = tk.Button(self, text="Cryptography", padx=7, pady=5, fg="white", bg="#252D33",
                     command=lambda: controller.show_frame(StartPage))
         lastPage.pack()
 
@@ -197,8 +275,8 @@ class PageTwo(tk.Frame):
 
 
 app = App()
-app.geometry("400x200")
+#app.geometry("400x200")
+app.update()
 app.mainloop()
-
 
 
