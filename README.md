@@ -1,10 +1,10 @@
 # cautious-engine
-An app to experiment with Cryptography and Seganography
+An app to experiment with Cryptography and Steganography
 https://inventwithpython.com/cracking/
 
 This project was started without any form of version control, as such it is waiting to be cleaned up.
 
-The gui for this app is made in Tkiner, .
+The gui for this app is made in Tkinter.
 
 Inspired by Cracking Codes With Python (see link above), the first page allows the user to:
 
