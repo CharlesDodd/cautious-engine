@@ -14,14 +14,10 @@ Inspired by Cracking Codes With Python (see link above), the first page allows t
 
 -Run either an encryption or decryption using the vigenere cipher over an extended alphabet
 
--Run a "one time pad", the key for which will be saved for use in decryption
+-Run a "one time pad", the key for which will be saved for later use
 
-The Steganography page will be used to:
+The Steganography Part of the GUI has been completed and uploaded seperately. This facilitates the hiding of one image inside another usiing the LSB method. One can hide a black and white image of the same size or a smaller colour image.
 
--Select an image (colour / black and white) to hide
+Due to the use of LSB, make sure to save images as PNG! 
 
--Select a cover image (When hiding a black and white image the cover image can be up to the same size. The colour images must be samller)
 
--Save Images
-
--Reveal recieved images
