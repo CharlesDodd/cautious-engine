@@ -8,6 +8,7 @@ import time, os, sys
 import random
 import string
 import steg_functions
+import secrets
 
 LARGE_FONT = ("Verdana", 12)
 
@@ -49,6 +50,17 @@ class App(tk.Tk):
         labelCover.pack()
         self.save_covername = covername
         self.covername = cv.imread(covername)
+
+    def rnd_img(self, x_dim, y_dim):
+        empty_img = np.zeros((x_dim,y_dim,3),np.uint8)
+        for i in range(x_dim):
+            for j in range(y_dim):
+                for k in range(3):
+                    empty_img[i][j][k] = secrets.choice(range(0,255))
+        cv.imwrite(self.frames[PageTwo].entryRandomName.get(), empty_img)
+        labelRnd = tk.Label(text="You have saved "+str(self.frames[PageTwo].entryRandomName.get()) )
+        labelRnd.config(wraplength=300)
+        labelRnd.pack()
 
     def steganographicFunction(self):
         print(self.frames[PageOne].var_bw.get())
@@ -94,11 +106,11 @@ class PageOne(tk.Frame):
 
         self.entryImageSize = tk.Entry(self, bg="#CACACA")
         self.entryImageSize.pack()
-        self.entryImageSize.insert(0, "Size of image")
+        self.entryImageSize.insert(0, "Image size eg '100x200'")
 
         self.entrySavedName = tk.Entry(self, bg="#CACACA")
         self.entrySavedName.pack()
-        self.entrySavedName.insert(0, "Saved image file name")
+        self.entrySavedName.insert(0, "Saved image name")
 
         buttonHide = tk.Button(self, text="Hide Image",
                             command=lambda: controller.steganographicFunction())
@@ -108,9 +120,9 @@ class PageOne(tk.Frame):
                             command=lambda: controller.retriever())
         buttonTest.pack()
 
-        lastPage = tk.Button(self, text="Cryptography", padx=7, pady=5, fg="white", bg="#252D33",
-                    command=lambda: controller.show_frame(PageTwo))
-        lastPage.pack()
+        button2 = tk.Button(self, text="Create Random Image",
+                            command=lambda: controller.show_frame(PageTwo))
+        button2.pack()
 
 
 
@@ -123,16 +135,28 @@ class PageTwo(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Page Two", font=LARGE_FONT)
+        label = tk.Label(self, text="Create a random cover image", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
 
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
+        self.entryXSize = tk.Entry(self, bg="#CACACA")
+        self.entryXSize.pack()
+        self.entryXSize.insert(0, "X dimension")
 
-        button2 = tk.Button(self, text="Page One",
+        self.entryYSize = tk.Entry(self, bg="#CACACA")
+        self.entryYSize.pack()
+        self.entryYSize.insert(0, "Y dimension")
+
+        self.entryRandomName = tk.Entry(self, bg="#CACACA")
+        self.entryRandomName.pack()
+        self.entryRandomName.insert(0, "Image_saved_name.png")
+
+        buttonRandomimg = tk.Button(self, text="Create Random Image",
+                            command=lambda: controller.rnd_img(int(self.entryYSize.get()), int(self.entryXSize.get())))
+        buttonRandomimg.pack()
+
+        buttonReturn = tk.Button(self, text="Back",
                             command=lambda: controller.show_frame(PageOne))
-        button2.pack()
+        buttonReturn.pack()
 
 
 
